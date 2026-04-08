@@ -202,6 +202,8 @@ shortcuts:
 
   auto_labeling_add_point: Q
   auto_labeling_remove_point: E
+  auto_labeling_add_positive_rect: C
+  auto_labeling_add_negative_rect: V
   auto_labeling_run: I
   auto_labeling_clear: B
   auto_labeling_finish_object: F

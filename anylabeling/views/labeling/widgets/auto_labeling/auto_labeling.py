@@ -460,6 +460,20 @@ class AutoLabelingWidget(QWidget):
                 "f",
             )
         )
+        self.add_pos_rect.setText(
+            self._format_button_with_shortcut(
+                self.add_pos_rect.text(),
+                shortcuts.get("auto_labeling_add_positive_rect"),
+                "c",
+            )
+        )
+        self.add_neg_rect.setText(
+            self._format_button_with_shortcut(
+                self.add_neg_rect.text(),
+                shortcuts.get("auto_labeling_add_negative_rect"),
+                "v",
+            )
+        )
 
     def init_model_data(self):
         """Get models data"""

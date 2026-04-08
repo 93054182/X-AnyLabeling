@@ -308,6 +308,12 @@ def _shortcut_label(short_key: str) -> str:
         "auto_labeling_remove_point": QT_TRANSLATE_NOOP(
             SETTINGS_TRANSLATION_CONTEXT, "Remove Point"
         ),
+        "auto_labeling_add_positive_rect": QT_TRANSLATE_NOOP(
+            SETTINGS_TRANSLATION_CONTEXT, "Add Positive Rect"
+        ),
+        "auto_labeling_add_negative_rect": QT_TRANSLATE_NOOP(
+            SETTINGS_TRANSLATION_CONTEXT, "Add Negative Rect"
+        ),
         "auto_labeling_run": QT_TRANSLATE_NOOP(
             SETTINGS_TRANSLATION_CONTEXT, "Run"
         ),
@@ -965,6 +971,8 @@ def _shortcut_category_map() -> dict[str, tuple[str, ...]]:
             "auto_labeling_clear",
             "auto_labeling_finish_object",
             "auto_labeling_remove_point",
+            "auto_labeling_add_positive_rect",
+            "auto_labeling_add_negative_rect",
             "auto_labeling_run",
         ),
         "Dialog": (

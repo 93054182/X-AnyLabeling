@@ -1371,6 +1371,12 @@ class SettingsDialog(QtWidgets.QDialog):
             "shortcuts.auto_labeling_remove_point": self.tr(
                 "Add a negative prompt point."
             ),
+            "shortcuts.auto_labeling_add_positive_rect": self.tr(
+                "Add a positive prompt rectangle."
+            ),
+            "shortcuts.auto_labeling_add_negative_rect": self.tr(
+                "Add a negative prompt rectangle."
+            ),
             "shortcuts.auto_labeling_run": self.tr(
                 "Run auto-labeling on the current image."
             ),

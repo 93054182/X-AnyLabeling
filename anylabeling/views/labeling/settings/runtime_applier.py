@@ -152,6 +152,20 @@ class SettingsRuntimeApplier:
                 ),
             )
         )
+        shortcut_map["shortcuts.auto_labeling_add_positive_rect"] = (
+            self._ensure_hidden_shortcut_action(
+                "auto_labeling_add_positive_rect",
+                self._widget.tr("Auto Labeling Add Positive Rect"),
+                lambda: self._trigger_auto_labeling_button("add_pos_rect"),
+            )
+        )
+        shortcut_map["shortcuts.auto_labeling_add_negative_rect"] = (
+            self._ensure_hidden_shortcut_action(
+                "auto_labeling_add_negative_rect",
+                self._widget.tr("Auto Labeling Add Negative Rect"),
+                lambda: self._trigger_auto_labeling_button("add_neg_rect"),
+            )
+        )
         shortcut_map["shortcuts.auto_labeling_run"] = (
             self._ensure_hidden_shortcut_action(
                 "auto_labeling_run",
