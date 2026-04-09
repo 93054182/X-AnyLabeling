@@ -218,6 +218,11 @@ class AutoLabelingWidget(QWidget):
         self.button_reset_tracker.setText(self.tr("Reset Tracker"))
         self.button_reset_tracker.clicked.connect(self.on_reset_tracker)
 
+        # --- Configuration for: SAM3 filter checkboxes ---
+        self.sam3_filter_group.hide()
+        self.sam3_bbox_checkbox.stateChanged.connect(self.on_sam3_filter_changed)
+        self.sam3_mask_checkbox.stateChanged.connect(self.on_sam3_filter_changed)
+
         # --- Configuration for: button_classes_filter ---
         self.button_classes_filter.setStyleSheet(get_normal_button_style())
         self.button_classes_filter.setText(self.tr("Classes"))
@@ -1553,6 +1558,12 @@ class AutoLabelingWidget(QWidget):
                 ):
                     widget.setPlaceholderText(widget_placeholder)
 
+        # Show SAM3 filter only for segment_anything_3 model
+        if model_id == "segment_anything_3":
+            self.sam3_filter_group.show()
+        else:
+            self.sam3_filter_group.hide()
+
     def on_auto_decode_toggled(self):
         """Handle AMD button toggle"""
         is_checked = self.button_auto_decode.isChecked()
@@ -1689,3 +1700,13 @@ class AutoLabelingWidget(QWidget):
         self.mask_fineness_value_label.setText(f"{epsilon:.4f}")
         self.model_manager.set_mask_fineness(epsilon)
         self.mask_fineness_changed.emit(epsilon)
+
+    def on_sam3_filter_changed(self):
+        """Handle SAM3 filter checkbox state changes"""
+        if self.model_manager.loaded_model_config:
+            model = self.model_manager.loaded_model_config.get("model")
+            if model and hasattr(model, "set_sam3_filter_state"):
+                model.set_sam3_filter_state(
+                    self.sam3_bbox_checkbox.isChecked(),
+                    self.sam3_mask_checkbox.isChecked(),
+                )

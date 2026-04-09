@@ -68,6 +68,10 @@ class RemoteServer(Model):
         self.video_session_image_list = None
         self.video_prompt_type = None
 
+        # Segment Anything 3 filter state
+        self.bbox_enabled = False
+        self.mask_enabled = True
+
     def set_cache_auto_label(self, text, gid):
         """Set cache auto label"""
         self.label = text
@@ -135,6 +139,16 @@ class RemoteServer(Model):
 
     def set_mask_fineness(self, epsilon):
         self.epsilon_factor = epsilon
+
+    def set_sam3_filter_state(self, bbox_enabled, mask_enabled):
+        """Set SAM3 bbox and mask filter state.
+
+        Args:
+            bbox_enabled: Whether to show bounding boxes (rectangle shapes)
+            mask_enabled: Whether to show masks (polygon shapes)
+        """
+        self.bbox_enabled = bbox_enabled
+        self.mask_enabled = mask_enabled
 
     def set_auto_labeling_reset_tracker(self):
         """Reset tracker state for tracking models."""
@@ -253,8 +267,10 @@ class RemoteServer(Model):
             if replace is None:
                 replace = self.replace
 
+            # Apply SAM3 filter if applicable
+            filtered_shapes = self._filter_sam3_shapes(shapes)
             return AutoLabelingResult(
-                shapes, replace=replace, description=description
+                filtered_shapes, replace=replace, description=description
             )
 
         except Exception as e:
@@ -415,8 +431,10 @@ class RemoteServer(Model):
                     shape.add_point(QtCore.QPointF(point[0], point[1]))
                 shapes.append(shape)
 
+            # Apply SAM3 filter if applicable
+            filtered_shapes = self._filter_sam3_shapes(shapes)
             return AutoLabelingResult(
-                shapes, replace=self.replace, description=""
+                filtered_shapes, replace=self.replace, description=""
             )
 
         except Exception as e:
@@ -609,7 +627,9 @@ class RemoteServer(Model):
                     shape.add_point(QtCore.QPointF(point[0], point[1]))
                 shapes.append(shape)
 
-            return AutoLabelingResult(shapes, replace=False, description="")
+            # Apply SAM3 filter if applicable
+            filtered_shapes = self._filter_sam3_shapes(shapes)
+            return AutoLabelingResult(filtered_shapes, replace=False, description="")
 
         except Exception as e:
             logger.error(f"Video point prompt error: {e}")
@@ -820,6 +840,30 @@ class RemoteServer(Model):
             self._reset_video_session()
             self.label, self.group_id = None, None
             return AutoLabelingResult([], replace=False)
+
+    def _filter_sam3_shapes(self, shapes):
+        """Filter shapes based on SAM3 bbox/mask checkbox state.
+
+        Args:
+            shapes: List of Shape objects to filter
+
+        Returns:
+            Filtered list of Shape objects
+        """
+        if not self.current_model_id:
+            return shapes
+
+        # Only apply filter for SAM3 model
+        if self.current_model_id != "segment_anything_3":
+            return shapes
+
+        filtered = []
+        for shape in shapes:
+            if shape.shape_type == "rectangle" and self.bbox_enabled:
+                filtered.append(shape)
+            elif shape.shape_type in ("polygon", "rotation") and self.mask_enabled:
+                filtered.append(shape)
+        return filtered
 
     def _reset_video_session(self):
         """Reset video session state and cleanup server session."""
