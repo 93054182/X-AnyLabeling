@@ -6109,7 +6109,13 @@ class LabelingWidget(LabelDialog):
             for rect_prompt in rect_prompts:
                 item = self.label_list.find_item_by_shape(rect_prompt)
                 if item is None:
-                    self.label_list.add_item(rect_prompt)
+                    text = (
+                        f"{rect_prompt.label} ({rect_prompt.group_id})"
+                        if rect_prompt.group_id is not None and rect_prompt.group_id >= 0
+                        else rect_prompt.label
+                    )
+                    label_list_item = LabelListWidgetItem(text, rect_prompt)
+                    self.label_list.add_iem(label_list_item)
             self.canvas.update()
 
         # Set image description
@@ -6153,6 +6159,12 @@ class LabelingWidget(LabelDialog):
             AutoLabelingMode.ADD,
             AutoLabelingMode.REMOVE,
         ]:
+            # Skip ADD/REMOVE labels if keeping rectangle prompts
+            if keep_rect_prompts and shape_label in [
+                AutoLabelingMode.ADD,
+                AutoLabelingMode.REMOVE,
+            ]:
+                continue
             for item in self.unique_label_list.find_items_by_label(
                 shape_label
             ):
@@ -6342,16 +6354,20 @@ class LabelingWidget(LabelDialog):
                     item.setText(f"{shape.label} ({shape.group_id})")
 
         # Clean up auto labeling objects
-        # Preserve rectangle prompts (ADD/REMOVE) so users can reuse them
-        self.clear_auto_labeling_marks(keep_rect_prompts=True)
+        # Clear all marks including rectangle prompts after finishing
+        self.clear_auto_labeling_marks(keep_rect_prompts=False)
 
-        # Update shape colors
+        # Update shape colors (skip preserved rectangle prompts)
         for shape in self.canvas.shapes:
+            # Skip rectangle prompts (ADD/REMOVE) that are being preserved
+            if shape.label in [AutoLabelingMode.ADD, AutoLabelingMode.REMOVE]:
+                continue
             self._update_shape_color(shape)
             color = shape.fill_color.getRgb()[:3]
             item = self.label_list.find_item_by_shape(shape)
-            item.setText("{}".format(html.escape(shape.label)))
-            item.setBackground(QtGui.QColor(*color, LABEL_OPACITY))
+            if item is not None:
+                item.setText("{}".format(html.escape(shape.label)))
+                item.setBackground(QtGui.QColor(*color, LABEL_OPACITY))
             self.unique_label_list.update_item_color(
                 shape.label, color, LABEL_OPACITY
             )
