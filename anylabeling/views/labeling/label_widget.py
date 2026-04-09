@@ -6108,8 +6108,13 @@ class LabelingWidget(LabelDialog):
 
         self.set_dirty()
 
-    def clear_auto_labeling_marks(self):
-        """Clear auto labeling marks from the current image."""
+    def clear_auto_labeling_marks(self, keep_rect_prompts=False):
+        """Clear auto labeling marks from the current image.
+
+        Args:
+            keep_rect_prompts: If True, preserve rectangle prompts (ADD/REMOVE)
+                           for repeated inference. Defaults to False.
+        """
         # Clean up label list
         for shape in self.canvas.shapes:
             if shape.label in [
@@ -6117,6 +6122,9 @@ class LabelingWidget(LabelDialog):
                 AutoLabelingMode.ADD,
                 AutoLabelingMode.REMOVE,
             ]:
+                # Skip rectangle prompts if keep_rect_prompts is True
+                if keep_rect_prompts and shape.shape_type == "rectangle":
+                    continue
                 try:
                     item = self.label_list.find_item_by_shape(shape)
                     self.label_list.remove_item(item)
@@ -6137,16 +6145,20 @@ class LabelingWidget(LabelDialog):
                 )
 
         # Remove shapes from the canvas
-        self.canvas.shapes = [
-            shape
-            for shape in self.canvas.shapes
-            if shape.label
-            not in [
+        shapes_to_keep = []
+        for shape in self.canvas.shapes:
+            if shape.label in [
                 AutoLabelingMode.OBJECT,
                 AutoLabelingMode.ADD,
                 AutoLabelingMode.REMOVE,
-            ]
-        ]
+            ]:
+                # Keep rectangle prompts if keep_rect_prompts is True
+                if keep_rect_prompts and shape.shape_type == "rectangle":
+                    shapes_to_keep.append(shape)
+            else:
+                shapes_to_keep.append(shape)
+
+        self.canvas.shapes = shapes_to_keep
         self.canvas.update()
 
     def find_last_label(self):
@@ -6314,7 +6326,8 @@ class LabelingWidget(LabelDialog):
                     item.setText(f"{shape.label} ({shape.group_id})")
 
         # Clean up auto labeling objects
-        self.clear_auto_labeling_marks()
+        # Preserve rectangle prompts (ADD/REMOVE) so users can reuse them
+        self.clear_auto_labeling_marks(keep_rect_prompts=True)
 
         # Update shape colors
         for shape in self.canvas.shapes:

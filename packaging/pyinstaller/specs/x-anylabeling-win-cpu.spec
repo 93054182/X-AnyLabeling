@@ -143,10 +143,21 @@ def _strip_msvc_runtime_binaries(binaries):
 onnxruntime_binaries = _collect_onnxruntime_dlls()
 msvc_runtime_binaries = _collect_msvc_runtime_dlls()
 
+# Add OpenSSL DLLs from conda environment
+openssl_binaries = []
+conda_lib_bin = os.path.join(sys.base_prefix, 'Library', 'bin')
+if os.path.isdir(conda_lib_bin):
+    for dll_name in ['libssl-3-x64.dll', 'libcrypto-3-x64.dll', 'libexpat.dll', 'zlib.dll']:
+        dll_path = os.path.join(conda_lib_bin, dll_name)
+        if os.path.isfile(dll_path):
+            openssl_binaries.append((dll_path, '.'))
+if openssl_binaries:
+    print("PyInstaller spec: bundled OpenSSL/con DLLs:", ", ".join(os.path.basename(b[0]) for b in openssl_binaries))
+
 a = Analysis(
     [_p('anylabeling', 'app.py')],
     pathex=[_p('anylabeling')],
-    binaries=onnxruntime_binaries,
+    binaries=onnxruntime_binaries + openssl_binaries,
     datas=[
         (_p('anylabeling', 'configs', 'auto_labeling', '*.yaml'), 'anylabeling/configs/auto_labeling'),
         (_p('anylabeling', 'configs', '*.yaml'), 'anylabeling/configs'),
