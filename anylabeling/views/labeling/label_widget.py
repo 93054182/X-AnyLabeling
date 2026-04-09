@@ -6083,6 +6083,13 @@ class LabelingWidget(LabelDialog):
                 )
                 return
 
+        # Save rectangle prompts (ADD/REMOVE) before clearing
+        rect_prompts = [
+            shape for shape in self.canvas.shapes
+            if shape.label in [AutoLabelingMode.ADD, AutoLabelingMode.REMOVE]
+            and shape.shape_type == "rectangle"
+        ]
+
         # Clear existing shapes
         if auto_labeling_result.replace:
             self.load_shapes([], replace=True)
@@ -6095,6 +6102,15 @@ class LabelingWidget(LabelDialog):
                     item = self.label_list.find_item_by_shape(shape)
                     self.label_list.remove_item(item)
             self.load_shapes(auto_labeling_result.shapes, replace=False)
+
+        # Restore rectangle prompts after loading new shapes
+        if rect_prompts:
+            self.canvas.shapes.extend(rect_prompts)
+            for rect_prompt in rect_prompts:
+                item = self.label_list.find_item_by_shape(rect_prompt)
+                if item is None:
+                    self.label_list.add_item(rect_prompt)
+            self.canvas.update()
 
         # Set image description
         if auto_labeling_result.description:
